@@ -105,12 +105,12 @@ class Payment
 
     public function getAmount(): ?int
     {
-        return $this->amount / 100;
+        return $this->amount;
     }
 
     public function setAmount(int $amount): self
     {
-        $this->amount = $amount * 100;
+        $this->amount = $amount;
 
         return $this;
     }
