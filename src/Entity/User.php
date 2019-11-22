@@ -10,14 +10,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ORM\HasLifecycleCallbacks
+ * @ORM\HasLifecycleCallbacks()
  */
 class User implements UserInterface
 {
     /**
      * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="UUID")
+     * @ORM\Column(type="guid")
      */
     private $id;
 
@@ -241,11 +241,18 @@ class User implements UserInterface
         return $this;
     }
 
+    /**
+     * @ORM\PrePersist()
+     */
     public function onPrePersist()
     {
         $this->createdAt = new DateTimeImmutable();
+        $this->modifiedAt = new DateTimeImmutable();
     }
 
+    /**
+     * @ORM\PreUpdate()
+     */
     public function onPreUpdate()
     {
         $this->modifiedAt = new DateTimeImmutable();

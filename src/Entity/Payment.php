@@ -13,8 +13,8 @@ class Payment
 {
     /**
      * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="UUID")
+     * @ORM\Column(type="guid")
      */
     private $id;
 
@@ -127,11 +127,18 @@ class Payment
         return $this;
     }
 
+    /**
+     * @ORM\PrePersist()
+     */
     public function onPrePersist()
     {
         $this->createdAt = new DateTimeImmutable();
+        $this->modifiedAt = new DateTimeImmutable();
     }
 
+    /**
+     * @ORM\PreUpdate()
+     */
     public function onPreUpdate()
     {
         $this->modifiedAt = new DateTimeImmutable();
