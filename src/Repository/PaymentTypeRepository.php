@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\PaymentType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method PaymentType|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,32 +20,16 @@ class PaymentTypeRepository extends ServiceEntityRepository
         parent::__construct($registry, PaymentType::class);
     }
 
-    // /**
-    //  * @return PaymentType[] Returns an array of PaymentType objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findByName(string $name) : PaymentType
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        try {
+            return $this->createQueryBuilder('pt')
+                ->andWhere('pt.name = :val')
+                ->setParameter('val', $name)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (NonUniqueResultException $e) {
+            return null;
+        }
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?PaymentType
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }
