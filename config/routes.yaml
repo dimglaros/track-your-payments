@@ -1,3 +1,4 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+payment.create:
+  path: /payment
+  methods: POST
+  controller: App\Controller\PaymentController::create
