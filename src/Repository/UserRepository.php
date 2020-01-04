@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Exception\NonValidUserException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,16 +22,25 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    /**
+     * @throws NonValidUserException
+     */
     public function findByApiToken(string $apiToken) : User
     {
+        if(empty($apiToken)) {
+            throw new NonValidUserException();
+        }
+
         try {
             return $this->createQueryBuilder('u')
                 ->andWhere('u.apiToken = :val')
                 ->setParameter('val', $apiToken)
                 ->getQuery()
-                ->getOneOrNullResult();
+                ->getSingleResult();
         } catch (NonUniqueResultException $e) {
-            return null;
+            throw new NonValidUserException();
+        } catch (NoResultException $e) {
+            throw new NonValidUserException();
         }
     }
 }
