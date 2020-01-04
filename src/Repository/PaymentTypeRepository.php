@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\PaymentType;
+use App\Exception\NonValidPaymentTypeException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method PaymentType|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,6 +22,9 @@ class PaymentTypeRepository extends ServiceEntityRepository
         parent::__construct($registry, PaymentType::class);
     }
 
+    /**
+     * @throws NonValidPaymentTypeException
+     */
     public function findByName(string $name) : PaymentType
     {
         try {
@@ -27,9 +32,11 @@ class PaymentTypeRepository extends ServiceEntityRepository
                 ->andWhere('pt.name = :val')
                 ->setParameter('val', $name)
                 ->getQuery()
-                ->getOneOrNullResult();
+                ->getSingleResult();
         } catch (NonUniqueResultException $e) {
-            return null;
+            throw new NonValidPaymentTypeException();
+        } catch (NoResultException $e) {
+            throw new NonValidPaymentTypeException();
         }
     }
 }
