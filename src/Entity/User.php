@@ -72,7 +72,7 @@ class User implements UserInterface
         $this->payments = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }

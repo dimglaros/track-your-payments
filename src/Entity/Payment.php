@@ -50,7 +50,7 @@ class Payment
      */
     private $description;
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }
