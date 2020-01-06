@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Payment;
 use App\Exception\NonValidPaymentTypeException;
 use App\Exception\NonValidUserException;
+use App\Message\PaymentCreation;
 use App\Repository\PaymentTypeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class PaymentController extends AbstractController
 {
@@ -27,20 +28,25 @@ class PaymentController extends AbstractController
      * @var PaymentTypeRepository
      */
     private $paymentTypeRepository;
+    /**
+     * @var MessageBusInterface
+     */
+    private $bus;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         UserRepository $userRepository,
-        PaymentTypeRepository $paymentTypeRepository
+        PaymentTypeRepository $paymentTypeRepository,
+        MessageBusInterface $bus
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
         $this->paymentTypeRepository = $paymentTypeRepository;
+        $this->bus = $bus;
     }
 
     public function create(Request $request): JsonResponse
     {
-        $payment = new Payment();
         try {
             $user = $this->userRepository->findByApiToken(
                 $request->headers->get('x-api-key', '')
@@ -51,28 +57,42 @@ class PaymentController extends AbstractController
                 Response::HTTP_UNAUTHORIZED
             );
         }
-        $payment->setUser($user);
 
         try {
-            $payment->setType($this->paymentTypeRepository->findByName(
+            $paymentType = $this->paymentTypeRepository->findByName(
                 $request->request->get('paymentType', '')
-            ));
+            );
         } catch (NonValidPaymentTypeException $e) {
             return JsonResponse::create(
                 ['errorMessage' => $e->getMessage()],
                 Response::HTTP_BAD_REQUEST
             );
         }
-        $payment->setDescription(
-            $request->request->get('description')
-        );
-        $payment->setAmount($request->request->getInt('amount'));
-        $this->entityManager->persist($payment);
-        $this->entityManager->flush();
+
+        if(is_null($request->request->get('description'))) {
+            return JsonResponse::create(
+                ['errorMessage' => 'Description attribute is missing'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if(is_null($request->request->get('amount'))) {
+            return JsonResponse::create(
+                ['errorMessage' => 'Amount attribute is missing'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $this->bus->dispatch(new PaymentCreation(
+            $user->getId(),
+            $paymentType->getId(),
+            $request->request->get('description'),
+            $request->request->get('amount')
+        ));
 
         return JsonResponse::create(
-            ['Response' => 'Success'],
-            Response::HTTP_OK
+            [],
+            Response::HTTP_ACCEPTED
         );
     }
 }
