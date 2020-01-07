@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Exception\NonValidPaymentTypeException;
 use App\Exception\NonValidUserException;
 use App\Message\PaymentCreation;
+use App\Repository\PaymentRepository;
 use App\Repository\PaymentTypeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +26,10 @@ class PaymentController extends AbstractController
      */
     private $userRepository;
     /**
+     * @var PaymentRepository
+     */
+    private $paymentRepository;
+    /**
      * @var PaymentTypeRepository
      */
     private $paymentTypeRepository;
@@ -36,11 +41,13 @@ class PaymentController extends AbstractController
     public function __construct(
         EntityManagerInterface $entityManager,
         UserRepository $userRepository,
+        PaymentRepository $paymentRepository,
         PaymentTypeRepository $paymentTypeRepository,
         MessageBusInterface $bus
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
+        $this->paymentRepository = $paymentRepository;
         $this->paymentTypeRepository = $paymentTypeRepository;
         $this->bus = $bus;
     }
@@ -94,5 +101,18 @@ class PaymentController extends AbstractController
             [],
             Response::HTTP_ACCEPTED
         );
+    }
+
+    public function getOne(string $id)
+    {
+        $payment = $this->paymentRepository->find($id);
+        if(!$payment) {
+            return JsonResponse::create(
+                [],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return JsonResponse::create($payment, Response::HTTP_OK);
     }
 }
