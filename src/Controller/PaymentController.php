@@ -103,6 +103,19 @@ class PaymentController extends AbstractController
         );
     }
 
+    public function delete(string $id)
+    {
+        $payment = $this->paymentRepository->find($id);
+        if(!$payment) {
+            return JsonResponse::create([], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->entityManager->remove($payment);
+        $this->entityManager->flush();
+
+        return JsonResponse::create([], Response::HTTP_OK);
+    }
+
     public function getAll(Request $request)
     {
         try {

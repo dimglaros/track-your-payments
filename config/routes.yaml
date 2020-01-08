@@ -12,3 +12,9 @@ payment.getAll:
   path: /payments
   methods: GET
   controller: App\Controller\PaymentController::getAll
+
+payment.delete:
+  path: /payment/{id}
+  methods: DELETE
+  controller: App\Controller\PaymentController::delete
+
