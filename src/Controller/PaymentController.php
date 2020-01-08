@@ -103,6 +103,25 @@ class PaymentController extends AbstractController
         );
     }
 
+    public function getAll(Request $request)
+    {
+        try {
+            $user = $this->userRepository->findByApiToken(
+                $request->headers->get('x-api-key', '')
+            );
+        } catch (NonValidUserException $e) {
+            return JsonResponse::create(
+                [],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        return JsonResponse::create(
+            $user->getPayments()->toArray(),
+            Response::HTTP_OK
+        );
+    }
+
     public function getOne(string $id)
     {
         $payment = $this->paymentRepository->find($id);

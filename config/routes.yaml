@@ -7,3 +7,8 @@ payment.get:
   path: /payment/{id}
   methods: GET
   controller: App\Controller\PaymentController::getOne
+
+payment.getAll:
+  path: /payments
+  methods: GET
+  controller: App\Controller\PaymentController::getAll
